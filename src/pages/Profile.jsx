@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { differenceInCalendarDays } from 'date-fns';
 import { useAuth } from '../services/AuthContext';
 import { supabase } from '../services/supabase';
 import { Link, useNavigate } from 'react-router-dom';
@@ -199,7 +200,20 @@ const Profile = () => {
                     gap: '0.5rem'
                 }}>
                     <Flame size={32} color="#F97316" />
-                    <span style={{ fontSize: '2rem', fontWeight: 'bold' }}>{profile?.current_streak || 0}</span>
+                    <span style={{ fontSize: '2rem', fontWeight: 'bold' }}>
+                        {(() => {
+                            if (!profile?.last_active_at) return 0;
+                            const lastActive = new Date(profile.last_active_at);
+                            const today = new Date();
+
+                            // Check difference in calendar days (robust to timezones)
+                            // 0 = Today, 1 = Yesterday, 2 = Day before yesterday
+                            const daysDiff = differenceInCalendarDays(today, lastActive);
+
+                            // If gap is > 1 day, the streak is broken.
+                            return daysDiff > 1 ? 0 : (profile.current_streak || 0);
+                        })()}
+                    </span>
                     <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Day Streak</span>
                 </div>
             </div>

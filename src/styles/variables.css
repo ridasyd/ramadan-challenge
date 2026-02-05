@@ -1,9 +1,11 @@
 :root {
     /* Core Palette */
-    --color-primary: #3aa372;
-    /* Duller Emerald */
-    --color-primary-hover: #2d825b;
-    --color-reward: #d97706;
+    --color-primary: #f59e0b;
+    /* Amber 500 - Gold/Yellow */
+    --color-primary-hover: #d97706;
+    /* Amber 600 - Darker Gold */
+    --color-reward: #f59e0b;
+    /* Match Reward with Primary for Gold Theme */
     /* Duller Amber/Gold */
     --color-danger: #EF4444;
 
