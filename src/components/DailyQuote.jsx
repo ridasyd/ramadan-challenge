@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabase';
+import { useLanguage } from '../services/LanguageContext';
 import { Lightbulb } from 'lucide-react';
 
 const DailyQuote = () => {
+    const { language } = useLanguage();
     const [quote, setQuote] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -81,7 +83,7 @@ const DailyQuote = () => {
                 marginBottom: '0.5rem',
                 lineHeight: '1.5'
             }}>
-                "{quote.content}"
+                "{(language === 'de' && quote.content_de) ? quote.content_de : quote.content}"
             </p>
             <p style={{
                 color: 'var(--text-muted)',

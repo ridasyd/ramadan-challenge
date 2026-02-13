@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../services/AuthContext';
+import { useLanguage } from '../services/LanguageContext';
 import { supabase } from '../services/supabase';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, Calendar, Repeat, MessageSquare, X } from 'lucide-react';
 import AdminCalendar from '../components/AdminCalendar';
+import LanguageToggle from '../components/LanguageToggle';
 
 const Admin = () => {
     const { user } = useAuth();
+    const { t } = useLanguage();
     const navigate = useNavigate();
     const [isAdmin, setIsAdmin] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -21,6 +24,7 @@ const Admin = () => {
     // Quest Form States
     const [editingTaskId, setEditingTaskId] = useState(null);
     const [description, setDescription] = useState('');
+    const [descriptionDe, setDescriptionDe] = useState('');
     const [points, setPoints] = useState(10);
     const [isRecurring, setIsRecurring] = useState(false);
     const [activeDate, setActiveDate] = useState(getLocalYYYYMMDD());
@@ -28,6 +32,7 @@ const Admin = () => {
 
     // Quote Form States
     const [quoteContent, setQuoteContent] = useState('');
+    const [quoteContentDe, setQuoteContentDe] = useState('');
     const [quoteAuthor, setQuoteAuthor] = useState('');
 
     // Data List State
@@ -89,6 +94,7 @@ const Admin = () => {
     const startEditTask = (task) => {
         setEditingTaskId(task.id);
         setDescription(task.description);
+        setDescriptionDe(task.description_de || '');
         setPoints(task.points);
         setIsRecurring(task.is_recurring);
         if (task.active_date) setActiveDate(task.active_date);
@@ -101,6 +107,7 @@ const Admin = () => {
     const cancelEdit = () => {
         setEditingTaskId(null);
         setDescription('');
+        setDescriptionDe('');
         setPoints(10);
         setIsRecurring(false);
         setActiveDate(getLocalYYYYMMDD());
@@ -111,6 +118,7 @@ const Admin = () => {
         try {
             const taskData = {
                 description,
+                description_de: descriptionDe,
                 points,
                 is_recurring: isRecurring,
                 active_date: isRecurring ? null : activeDate,
@@ -132,6 +140,7 @@ const Admin = () => {
 
             // Reset form and refresh list
             setDescription('');
+            setDescriptionDe('');
             setPoints(10);
             fetchAllTasks();
 
@@ -146,12 +155,14 @@ const Admin = () => {
         try {
             const { error } = await supabase.from('daily_quotes').insert([{
                 content: quoteContent,
+                content_de: quoteContentDe,
                 author: quoteAuthor,
                 active_date: activeDate // Reusing activeDate state for simplicity
             }]);
             if (error) throw error;
 
             setQuoteContent('');
+            setQuoteContentDe('');
             setQuoteAuthor('');
             alert('Quote Created!');
             fetchAllQuotes();
@@ -201,7 +212,10 @@ const Admin = () => {
                 <button onClick={() => navigate('/')} style={{ background: 'none', border: 'none', marginRight: '1rem', cursor: 'pointer', color: 'var(--text-muted)' }}>
                     <ArrowLeft size={24} />
                 </button>
-                <h1 style={{ fontSize: '1.5rem', margin: 0 }}>Quest Maker Dashboard</h1>
+                <h1 style={{ fontSize: '1.5rem', margin: 0 }}>{t('admin_dashboard')}</h1>
+                <div style={{ marginLeft: 'auto' }}>
+                    <LanguageToggle />
+                </div>
             </header>
 
             {/* CALENDAR VIEW */}
@@ -249,15 +263,19 @@ const Admin = () => {
                         {/* LEFT: QUEST FORM for selected date */}
                         <div>
                             <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-primary)' }}>
-                                <Plus size={18} /> {editingTaskId ? 'Edit Quest' : 'Add Quest for this Day'}
+                                <Plus size={18} /> {editingTaskId ? t('edit_quest') : t('add_quest')}
                             </h3>
                             {/* Re-using the same form logic but wrapped here for context */}
                             <form onSubmit={handleCreateOrUpdateTask} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 {/* ... Same fields ... */}
                                 {/* Simplified projection for brevity in this specific view, or just re-render full form */}
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Description</label>
-                                    <input required value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Quest Description" style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-app)', color: 'var(--text-main)' }} />
+                                    <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>{t('description')}</label>
+                                    <input required value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description (English)" style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-app)', color: 'var(--text-main)' }} />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>{t('description_de')}</label>
+                                    <input value={descriptionDe} onChange={(e) => setDescriptionDe(e.target.value)} placeholder="Beschreibung (German)" style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-app)', color: 'var(--text-main)' }} />
                                 </div>
                                 <div style={{ display: 'flex', gap: '1rem' }}>
                                     <div style={{ flex: 1 }}>
@@ -267,13 +285,13 @@ const Admin = () => {
                                     <div style={{ flex: 1 }}>
                                         <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Type</label>
                                         <select value={isRecurring ? 'recurring' : 'oneoff'} onChange={(e) => setIsRecurring(e.target.value === 'recurring')} style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-app)', color: 'var(--text-main)' }}>
-                                            <option value="oneoff">One-off (This Date)</option>
-                                            <option value="recurring">Recurring (Every {selectedDate.toLocaleDateString(undefined, { weekday: 'long' })})</option>
+                                            <option value="oneoff">{t('one_off')} (This Date)</option>
+                                            <option value="recurring">{t('recurring')} (Every {selectedDate.toLocaleDateString(undefined, { weekday: 'long' })})</option>
                                         </select>
                                     </div>
                                 </div>
                                 <button type="submit" style={{ padding: '0.75rem', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
-                                    {editingTaskId ? 'Update Quest' : 'Save Quest'}
+                                    {editingTaskId ? t('update_quest') : t('save_quest')}
                                 </button>
                             </form>
 
@@ -298,7 +316,8 @@ const Admin = () => {
                                 <MessageSquare size={18} /> Quote for {selectedDate.toLocaleDateString()}
                             </h3>
                             <form onSubmit={handleCreateQuote} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                <textarea required value={quoteContent} onChange={(e) => setQuoteContent(e.target.value)} placeholder="Quote Content" rows={3} style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-app)', color: 'var(--text-main)' }} />
+                                <textarea required value={quoteContent} onChange={(e) => setQuoteContent(e.target.value)} placeholder="Quote Content (English)" rows={3} style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-app)', color: 'var(--text-main)' }} />
+                                <textarea value={quoteContentDe} onChange={(e) => setQuoteContentDe(e.target.value)} placeholder="Zitat Inhalt (German)" rows={3} style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-app)', color: 'var(--text-main)' }} />
                                 <input value={quoteAuthor} onChange={(e) => setQuoteAuthor(e.target.value)} placeholder="Author" style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-app)', color: 'var(--text-main)' }} />
                                 <button type="submit" style={{ padding: '0.75rem', backgroundColor: 'var(--color-reward)', color: 'black', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
                                     Save Quote

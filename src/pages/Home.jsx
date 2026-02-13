@@ -1,12 +1,15 @@
 import React from 'react';
 import { useAuth } from '../services/AuthContext';
+import { useLanguage } from '../services/LanguageContext';
 import { useTasks } from '../services/useTasks';
 import { Link } from 'react-router-dom';
 import { CheckCircle, Circle } from 'lucide-react';
 import DailyQuote from '../components/DailyQuote';
+import LanguageToggle from '../components/LanguageToggle';
 
 const Home = () => {
     const { user, signOut } = useAuth();
+    const { t, language } = useLanguage();
     const { tasks, loading, toggleTask } = useTasks();
     const [displayName, setDisplayName] = React.useState('');
     const [username, setUsername] = React.useState('');
@@ -27,34 +30,37 @@ const Home = () => {
         <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
             <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <h1 style={{ fontSize: '1.5rem' }}>Daily Quest</h1>
-                {user ? (
-                    <button
-                        onClick={signOut}
-                        style={{
-                            padding: '0.5rem 1rem',
-                            border: '1px solid var(--border-subtle)',
-                            background: 'transparent',
-                            borderRadius: '8px',
-                            color: 'var(--text-muted)'
-                        }}
-                    >
-                        Sign Out
-                    </button>
-                ) : (
-                    <Link
-                        to="/login"
-                        style={{ padding: '0.5rem 1rem', backgroundColor: 'var(--color-primary)', color: 'white', borderRadius: '8px', fontWeight: 'bold' }}
-                    >
-                        Login
-                    </Link>
-                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <LanguageToggle />
+                    {user ? (
+                        <button
+                            onClick={signOut}
+                            style={{
+                                padding: '0.5rem 1rem',
+                                border: '1px solid var(--border-subtle)',
+                                background: 'transparent',
+                                borderRadius: '8px',
+                                color: 'var(--text-muted)'
+                            }}
+                        >
+                            {t('sign_out')}
+                        </button>
+                    ) : (
+                        <Link
+                            to="/login"
+                            style={{ padding: '0.5rem 1rem', backgroundColor: 'var(--color-primary)', color: 'white', borderRadius: '8px', fontWeight: 'bold' }}
+                        >
+                            {t('login')}
+                        </Link>
+                    )}
+                </div>
             </header>
 
             {user ? (
                 <div>
                     <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
-                            <p style={{ color: 'var(--text-muted)', margin: 0 }}>Welcome back,</p>
+                            <p style={{ color: 'var(--text-muted)', margin: 0 }}>{t('welcome_back')}</p>
                             <Link to="/profile" style={{ fontSize: '1.25rem', fontWeight: 'bold', textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column', lineHeight: '1.2' }}>
                                 <span>{displayName || 'Adventurer'}</span>
                                 {username && <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>@{username}</span>}
@@ -84,7 +90,7 @@ const Home = () => {
                         overflow: 'hidden'
                     }}>
                         <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
-                            <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Today's Quests</h2>
+                            <h2 style={{ margin: 0, fontSize: '1.25rem' }}>{t('todays_quests')}</h2>
                             <p style={{ margin: '0.5rem 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                                 Complete tasks to earn points!
                             </p>
@@ -92,9 +98,9 @@ const Home = () => {
 
                         <div style={{ padding: '0' }}>
                             {loading ? (
-                                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading tasks...</div>
+                                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>{t('loading')}</div>
                             ) : tasks.length === 0 ? (
-                                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No tasks for today. Check back tomorrow!</div>
+                                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>{t('no_quests')}</div>
                             ) : (
                                 tasks.map(task => (
                                     <div key={task.id} style={{
@@ -133,7 +139,7 @@ const Home = () => {
                                                     textDecoration: task.completed ? 'line-through' : 'none',
                                                     color: task.completed ? 'var(--text-muted)' : 'var(--text-main)'
                                                 }}>
-                                                    {task.description}
+                                                    {(language === 'de' && task.description_de) ? task.description_de : task.description}
                                                 </p>
                                             </div>
                                         </div>
@@ -143,7 +149,7 @@ const Home = () => {
                                             color: task.completed ? 'var(--text-muted)' : 'var(--color-reward)',
                                             fontSize: '0.9rem'
                                         }}>
-                                            +{task.points} pts
+                                            +{task.points} {t('points')}
                                         </div>
                                     </div>
                                 ))
